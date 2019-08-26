@@ -44,7 +44,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-
+/**
+ * 在创建项目的界面中，点击【提交】按钮，调用创建 App 的 API
+ * POST apps 接口，Request Body 传递 JSON 对象
+ */
 @RestController
 @RequestMapping("/apps")
 public class AppController {
@@ -52,6 +55,10 @@ public class AppController {
   private final UserInfoHolder userInfoHolder;
   private final AppService appService;
   private final PortalSettings portalSettings;
+
+  /**
+   * Spring事件的发布者
+   */
   private final ApplicationEventPublisher publisher;
   private final RolePermissionService rolePermissionService;
   private final RoleInitializationService roleInitializationService;
@@ -107,23 +114,40 @@ public class AppController {
     return appService.findByAppIds(appIds, page);
   }
 
+  /**
+   * 创建App
+   * @param appModel AppModel 对象
+   * @return App 对象
+   */
   @PreAuthorize(value = "@permissionValidator.hasCreateApplicationPermission()")
   @PostMapping
   public App create(@Valid @RequestBody AppModel appModel) {
 
+   //将 AppModel 转换成 App 对象
     App app = transformToApp(appModel);
 
+    //保存 App 对象到数据库
     App createdApp = appService.createAppInLocal(app);
 
+    //发布 AppCreationEvent 创建事件
     publisher.publishEvent(new AppCreationEvent(createdApp));
 
+    //授予 App 管理员的角色
     Set<String> admins = appModel.getAdmins();
+
+    /**
+     * CollectionUtils的用法
+     * 如果有一行代码为!(list == null || list.isEmpty());
+     * 此时可以用import org.apache.commons.collections4.CollectionUtils;
+     * CollectionUtils.isNotEmpty(list);
+     */
     if (!CollectionUtils.isEmpty(admins)) {
       rolePermissionService
           .assignRoleToUsers(RoleUtils.buildAppMasterRoleName(createdApp.getAppId()),
               admins, userInfoHolder.getUser().getUserId());
     }
 
+    //// 返回 App 对象
     return createdApp;
   }
 

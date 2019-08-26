@@ -24,6 +24,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 提供 App 的 Service 逻辑。
+ * #createAppInLocal(App) 方法，保存 App 对象到 Portal DB 数据库。代码如下：
+ */
 @Service
 public class AppService {
 
@@ -108,8 +112,17 @@ public class AppService {
     appAPI.createApp(env, appDTO);
   }
 
+  /**
+   *
+   * @param app
+   * @return
+   */
   @Transactional
   public App createAppInLocal(App app) {
+
+    /**
+     * 判断 `appId` 是否已经存在对应的 App 对象。若已经存在，抛出 BadRequestException 异常。
+     */
     String appId = app.getAppId();
     App managedApp = appRepository.findByAppId(appId);
 
@@ -117,21 +130,34 @@ public class AppService {
       throw new BadRequestException(String.format("App already exists. AppId = %s", appId));
     }
 
+    /**
+     * 获得 UserInfo 对象。若不存在，抛出 BadRequestException 异常
+     */
     UserInfo owner = userService.findByUserId(app.getOwnerName());
     if (owner == null) {
       throw new BadRequestException("Application's owner not exist.");
     }
+
+    //Email的设置
     app.setOwnerEmail(owner.getEmail());
 
+    /**
+     *  设置 App 的创建和修改人
+     */
     String operator = userInfoHolder.getUser().getUserId();
     app.setDataChangeCreatedBy(operator);
     app.setDataChangeLastModifiedBy(operator);
 
+    // 保存 App 对象到数据库
     App createdApp = appRepository.save(app);
 
+    // 创建 App 的默认命名空间 "application"
     appNamespaceService.createDefaultAppNamespace(appId);
+
+    //初始化 App 角色
     roleInitializationService.initAppRoles(createdApp);
 
+    //【TODO 6001】Tracer 日志
     Tracer.logEvent(TracerEventType.CREATE_APP, appId);
 
     return createdApp;
