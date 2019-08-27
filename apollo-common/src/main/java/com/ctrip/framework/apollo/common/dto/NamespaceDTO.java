@@ -6,14 +6,24 @@ import javax.validation.constraints.Pattern;
 public class NamespaceDTO extends BaseDTO{
   private long id;
 
+  /**
+   * App编号
+   */
   private String appId;
 
+  /**
+   * cluster的名字
+   */
   private String clusterName;
 
   @Pattern(
       regexp = InputValidator.CLUSTER_NAMESPACE_VALIDATOR,
       message = "Namespace格式错误: " + InputValidator.INVALID_CLUSTER_NAMESPACE_MESSAGE
   )
+
+  /**
+   * NameSpace的名字
+   */
   private String namespaceName;
 
   public long getId() {

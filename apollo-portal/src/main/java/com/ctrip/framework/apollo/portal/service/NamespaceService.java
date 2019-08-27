@@ -75,17 +75,28 @@ public class NamespaceService {
     this.rolePermissionService = rolePermissionService;
   }
 
-
+  /**
+   *
+   * @param env
+   * @param namespace
+   * @return
+   */
   public NamespaceDTO createNamespace(Env env, NamespaceDTO namespace) {
+
+    // 设置 NamespaceDTO 的创建和修改人为当前管理员
     if (StringUtils.isEmpty(namespace.getDataChangeCreatedBy())) {
       namespace.setDataChangeCreatedBy(userInfoHolder.getUser().getUserId());
     }
     namespace.setDataChangeLastModifiedBy(userInfoHolder.getUser().getUserId());
+
+    //创建 Namespace 到 Admin Service
     NamespaceDTO createdNamespace = namespaceAPI.createNamespace(env, namespace);
 
+    //Tracer 日志
     Tracer.logEvent(TracerEventType.CREATE_NAMESPACE,
         String.format("%s+%s+%s+%s", namespace.getAppId(), env, namespace.getClusterName(),
             namespace.getNamespaceName()));
+
     return createdNamespace;
   }
 

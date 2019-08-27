@@ -47,6 +47,7 @@ import static com.ctrip.framework.apollo.common.utils.RequestPrecondition.checkM
 /**
  * 提供 AppNamespace 和 Namespace 的 API
  * 在创建 Namespace的界面中，点击【提交】按钮，调用创建 AppNamespace 的 API
+ * 在关联 Namespace的界面中，点击【提交】按钮，调用创建 Namespace 的 API
  */
 @RestController
 public class NamespaceController {
@@ -124,6 +125,11 @@ public class NamespaceController {
     return namespaceService.findPublicNamespaceForAssociatedNamespace(Env.valueOf(env), appId, clusterName, namespaceName);
   }
 
+  /**
+   * @param appId
+   * @param models
+   * @return
+   */
   @PreAuthorize(value = "@permissionValidator.hasCreateNamespacePermission(#appId)")
   @PostMapping("/apps/{appId}/namespaces")
   public ResponseEntity<Void> createNamespace(@PathVariable String appId,

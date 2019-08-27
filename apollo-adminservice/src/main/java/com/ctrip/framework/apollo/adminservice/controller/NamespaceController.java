@@ -18,6 +18,10 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @PathVariable 路径变量
+ * @RequestParam 请求参数
+ */
 @RestController
 public class NamespaceController {
 
@@ -27,19 +31,34 @@ public class NamespaceController {
     this.namespaceService = namespaceService;
   }
 
+  /**
+   * 创建 Namespace
+   * @param appId  App编号
+   * @param clusterName Cluster的名字
+   * @param dto NamespaceDTO 对象
+   * @return 创建成功的 NamespaceDTO 对象
+   */
   @PostMapping("/apps/{appId}/clusters/{clusterName}/namespaces")
   public NamespaceDTO create(@PathVariable("appId") String appId,
                              @PathVariable("clusterName") String clusterName,
                              @Valid @RequestBody NamespaceDTO dto) {
+
+    // 将 NamespaceDTO 转换成 Namespace 对象
     Namespace entity = BeanUtils.transform(Namespace.class, dto);
+
+    // 判断 `name` 在 Cluster 下是否已经存在对应的 Namespace 对象。
+    // 若已经存在，抛出 BadRequestException 异常。
     Namespace managedEntity = namespaceService.findOne(appId, clusterName, entity.getNamespaceName());
     if (managedEntity != null) {
       throw new BadRequestException("namespace already exist.");
     }
 
+    //保存 Namespace 对象
     entity = namespaceService.save(entity);
 
+    //将保存的 Namespace 对象转换成 NamespaceDTO
     return BeanUtils.transform(NamespaceDTO.class, entity);
+
   }
 
   @DeleteMapping("/apps/{appId}/clusters/{clusterName}/namespaces/{namespaceName:.+}")
