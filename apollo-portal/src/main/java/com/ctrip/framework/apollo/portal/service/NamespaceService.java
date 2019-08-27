@@ -324,10 +324,20 @@ public class NamespaceService {
   public void assignNamespaceRoleToOperator(String appId, String namespaceName, String operator) {
     //default assign modify、release namespace role to namespace creator
 
+    /**
+     * 赋予权限，若满足如下任一条件：
+     * 1. 公开类型的 AppNamespace 。
+     * 2. 私有类型的 AppNamespace ，并且允许 App 管理员创建私有类型的 AppNamespace 。
+     * 授予 Namespace Role
+     */
     rolePermissionService
         .assignRoleToUsers(
             RoleUtils.buildNamespaceRoleName(appId, namespaceName, RoleType.MODIFY_NAMESPACE),
             Sets.newHashSet(operator), operator);
+
+    /**
+     * 布 AppNamespaceCreationEvent 创建事件
+     */
     rolePermissionService
         .assignRoleToUsers(
             RoleUtils.buildNamespaceRoleName(appId, namespaceName, RoleType.RELEASE_NAMESPACE),

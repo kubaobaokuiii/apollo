@@ -44,6 +44,10 @@ import java.util.stream.Collectors;
 
 import static com.ctrip.framework.apollo.common.utils.RequestPrecondition.checkModel;
 
+/**
+ * 提供 AppNamespace 和 Namespace 的 API
+ * 在创建 Namespace的界面中，点击【提交】按钮，调用创建 AppNamespace 的 API
+ */
 @RestController
 public class NamespaceController {
 
@@ -125,6 +129,7 @@ public class NamespaceController {
   public ResponseEntity<Void> createNamespace(@PathVariable String appId,
                                               @RequestBody List<NamespaceCreationModel> models) {
 
+    //校验models不为空
     checkModel(!CollectionUtils.isEmpty(models));
 
     String namespaceName = models.get(0).getNamespace().getNamespaceName();
@@ -139,6 +144,7 @@ public class NamespaceController {
                                                  namespace.getClusterName(), namespace.getNamespaceName());
 
       try {
+        //保存 AppNamespace 对象到数据库
         namespaceService.createNamespace(Env.valueOf(model.getEnv()), namespace);
       } catch (Exception e) {
         logger.error("create namespace fail.", e);

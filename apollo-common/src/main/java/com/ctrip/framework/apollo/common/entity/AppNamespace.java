@@ -88,4 +88,14 @@ public class AppNamespace extends BaseEntity {
     return toStringHelper().add("name", name).add("appId", appId).add("comment", comment)
         .add("format", format).add("isPublic", isPublic).toString();
   }
+
+//  Namespace => AppNamespace
+//if (AppNamespace.isPublic) {
+//    return "公共类型";
+//  }
+//if (Namespace.appId == AppNamespace.appId) {
+//    return "私有类型";
+//  }
+//return "关联类型";
+
 }

@@ -1,5 +1,6 @@
 package com.ctrip.framework.apollo.biz.entity;
 
+import com.ctrip.framework.apollo.common.entity.AppNamespace;
 import com.ctrip.framework.apollo.common.entity.BaseEntity;
 
 import org.hibernate.annotations.SQLDelete;
@@ -62,4 +63,5 @@ public class Namespace extends BaseEntity {
     return toStringHelper().add("appId", appId).add("clusterName", clusterName)
         .add("namespaceName", namespaceName).toString();
   }
+
 }
