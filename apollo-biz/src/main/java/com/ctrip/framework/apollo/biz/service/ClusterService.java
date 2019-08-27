@@ -16,6 +16,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 提供 Cluster 的 Service 逻辑给 Admin Service 和 Config Service
+ */
 @Service
 public class ClusterService {
 
@@ -62,11 +65,18 @@ public class ClusterService {
     return clusters;
   }
 
+  /**
+   *
+   * @param entity
+   * @return
+   */
   @Transactional
   public Cluster saveWithInstanceOfAppNamespaces(Cluster entity) {
 
+    //保存Cluster对象
     Cluster savedCluster = saveWithoutInstanceOfAppNamespaces(entity);
 
+    //创建Cluster的命名空间
     namespaceService.instanceOfAppNamespaces(savedCluster.getAppId(), savedCluster.getName(),
                                              savedCluster.getDataChangeCreatedBy());
 
@@ -75,12 +85,20 @@ public class ClusterService {
 
   @Transactional
   public Cluster saveWithoutInstanceOfAppNamespaces(Cluster entity) {
+
+    /**
+     * 判断 `name` 在 App 下是否已经存在对应的 Cluster 对象。
+     * 若已经存在，抛出 BadRequestException 异常
+     */
     if (!isClusterNameUnique(entity.getAppId(), entity.getName())) {
       throw new BadRequestException("cluster not unique");
     }
+
+    //保存 Cluster 对象到数据库
     entity.setId(0);//protection
     Cluster cluster = clusterRepository.save(entity);
 
+    //Tracer 日志
     auditService.audit(Cluster.class.getSimpleName(), cluster.getId(), Audit.OP.INSERT,
                        cluster.getDataChangeCreatedBy());
 

@@ -18,6 +18,11 @@ import java.util.Objects;
 
 import static com.ctrip.framework.apollo.common.utils.RequestPrecondition.checkModel;
 
+/**
+ * 提供 Cluster 的 API
+ * 在创建 Cluster的界面中，点击【提交】按钮，调用创建 Cluster 的 API
+ * 创建集群（添加集群）
+ */
 @RestController
 public class ClusterController {
 
@@ -29,15 +34,30 @@ public class ClusterController {
     this.userInfoHolder = userInfoHolder;
   }
 
+  /**
+   * 创建 Cluster 的 API 代码如下
+   * @param appId 应用AppId
+   * @param env 选择环境
+   * @param cluster 集群名称
+   * @Valid 做了非空校验
+   * @return
+   * post的接口
+   * @PreAuthorize(...) 注解
+   * 调用 PermissionValidator#hasCreateClusterPermission(appId) 方法，校验是否有创建 Cluster 的权限
+   */
   @PreAuthorize(value = "@permissionValidator.hasCreateClusterPermission(#appId)")
   @PostMapping(value = "apps/{appId}/envs/{env}/clusters")
   public ClusterDTO createCluster(@PathVariable String appId, @PathVariable String env,
                                   @Valid @RequestBody ClusterDTO cluster) {
+
+    //设置 ClusterDTO 的创建和修改人为当前管理员
     String operator = userInfoHolder.getUser().getUserId();
     cluster.setDataChangeLastModifiedBy(operator);
     cluster.setDataChangeCreatedBy(operator);
 
+    //创建 Cluster 到 Admin Service
     return clusterService.createCluster(Env.valueOf(env), cluster);
+
   }
 
   @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
