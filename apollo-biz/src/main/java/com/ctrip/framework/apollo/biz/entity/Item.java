@@ -16,19 +16,35 @@ import javax.persistence.Table;
 @Where(clause = "isDeleted = 0")
 public class Item extends BaseEntity {
 
+  /**
+   * NameSpace编号
+   */
   @Column(name = "NamespaceId", nullable = false)
   private long namespaceId;
 
+  /**
+   * 键
+   */
   @Column(name = "key", nullable = false)
   private String key;
 
+  /**
+   * 值
+   */
   @Column(name = "value")
   @Lob
   private String value;
 
+  /**
+   * 注释
+   */
   @Column(name = "comment")
   private String comment;
 
+  /**
+   * 行号，从一开始
+   * 例如 Properties 中，多个配置项。每个配置项对应一行。
+   */
   @Column(name = "LineNum")
   private Integer lineNum;
 
@@ -76,4 +92,5 @@ public class Item extends BaseEntity {
     return toStringHelper().add("namespaceId", namespaceId).add("key", key).add("value", value)
         .add("lineNum", lineNum).add("comment", comment).toString();
   }
+
 }
