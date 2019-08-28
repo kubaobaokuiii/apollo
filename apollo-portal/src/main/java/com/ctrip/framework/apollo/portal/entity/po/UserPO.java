@@ -16,16 +16,35 @@ import javax.persistence.Table;
 @Table(name = "Users")
 public class UserPO {
 
+  /**
+   * 编号
+   */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "Id")
   private long id;
+
+  /**
+   * 账号
+   */
   @Column(name = "Username", nullable = false)
   private String username;
+
+  /**
+   * 密码
+   */
   @Column(name = "Password", nullable = false)
   private String password;
+
+  /**
+   * 邮箱
+   */
   @Column(name = "Email", nullable = false)
   private String email;
+
+  /**
+   * 是否开启
+   */
   @Column(name = "Enabled", nullable = false)
   private int enabled;
 
@@ -69,6 +88,11 @@ public class UserPO {
     this.enabled = enabled;
   }
 
+  /**
+   * 在 UserPO 的 #toUserInfo() 方法中，将 UserPO 转换成 UserBO
+   * @return
+   * userId 和 name 属性，都是指向 User.username
+   */
   public UserInfo toUserInfo() {
     UserInfo userInfo = new UserInfo();
     userInfo.setName(this.getUsername());

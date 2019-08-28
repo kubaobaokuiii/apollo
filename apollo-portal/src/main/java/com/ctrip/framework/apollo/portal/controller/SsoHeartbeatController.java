@@ -23,8 +23,15 @@ public class SsoHeartbeatController {
     this.handler = handler;
   }
 
+  /**
+   * 通过打开一个新的窗口，访问 http://ip:prot/sso_hearbeat 地址
+   * 每 60 秒刷新一次页面，从而避免 SSO 登陆过期。因此，相关类的类名都包含 Heartbeat ，代表心跳的意思
+   * @param request
+   * @param response
+   */
   @GetMapping
   public void heartbeat(HttpServletRequest request, HttpServletResponse response) {
     handler.doHeartbeat(request, response);
   }
+
 }

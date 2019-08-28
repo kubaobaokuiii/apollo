@@ -21,6 +21,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * 用户管理
+ * 提供User的API
+ * 在用户管理界面，点击提交按钮，点击创建或者更新User的API
+ */
 @RestController
 public class UserInfoController {
 
@@ -37,14 +42,21 @@ public class UserInfoController {
     this.userService = userService;
   }
 
-
+  /**
+   * 创建或者更新User
+   * @param user
+   * 调用 PermissionValidator#isSuperAdmin() 方法，校验是否为超级管理员
+   */
   @PreAuthorize(value = "@permissionValidator.isSuperAdmin()")
   @PostMapping("/users")
   public void createOrUpdateUser(@RequestBody UserPO user) {
+
+    //校验username或者password非空
     if (StringUtils.isContainEmpty(user.getUsername(), user.getPassword())) {
       throw new BadRequestException("Username and password can not be empty.");
     }
 
+    //新增或者更新User
     if (userService instanceof SpringSecurityUserService) {
       ((SpringSecurityUserService) userService).createOrUpdate(user);
     } else {
@@ -53,11 +65,23 @@ public class UserInfoController {
 
   }
 
+  /**
+   * UserInfoHolder获取当前登录用户信息，SSO 一般都是把当前登录用户信息放在线程 ThreadLocal 上
+   * @return
+   */
   @GetMapping("/user")
   public UserInfo getCurrentUserName() {
+
     return userInfoHolder.getUser();
+
   }
 
+  /**
+   * 用户退出
+   * @param request
+   * @param response
+   * @throws IOException
+   */
   @GetMapping("/user/logout")
   public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
     logoutHandler.logout(request, response);

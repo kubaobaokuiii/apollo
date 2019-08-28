@@ -2,8 +2,11 @@ package com.ctrip.framework.apollo.portal.entity.bo;
 
 public class UserInfo {
 
+  //账号
   private String userId;
+  //账号
   private String name;
+  //邮箱
   private String email;
 
   public UserInfo() {

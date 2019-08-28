@@ -7,6 +7,9 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * DefaultLogoutHandler,实现LogoutHandler接口
+ */
 public class DefaultLogoutHandler implements LogoutHandler {
 
   @Override

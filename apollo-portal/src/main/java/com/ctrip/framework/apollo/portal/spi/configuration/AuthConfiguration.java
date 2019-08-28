@@ -223,26 +223,49 @@ public class AuthConfiguration {
       return new DefaultLogoutHandler();
     }
 
+    /**
+     *
+     * @param auth
+     * @param datasource
+     * @return
+     * @throws Exception
+     * jdbcUserDetailsManager:继承 JdbcDaoImpl 的功能，提供了一些很有用的与 Users 和 Authorities 表相关的方法
+     */
     @Bean
     public JdbcUserDetailsManager jdbcUserDetailsManager(AuthenticationManagerBuilder auth,
         DataSource datasource) throws Exception {
+
+      //基于JDBC
       JdbcUserDetailsManager jdbcUserDetailsManager = auth.jdbcAuthentication()
-          .passwordEncoder(new BCryptPasswordEncoder()).dataSource(datasource)
+
+              // 加密方式为 BCryptPasswordEncoder
+          .passwordEncoder(new BCryptPasswordEncoder())
+              //数据源
+              .dataSource(datasource)
+              //使用username查询用户
           .usersByUsernameQuery("select Username,Password,Enabled from `Users` where Username = ?")
+              //使用username查询权限Authorities
           .authoritiesByUsernameQuery(
               "select Username,Authority from `Authorities` where Username = ?")
           .getUserDetailsService();
 
+      //判断User是否存在
       jdbcUserDetailsManager.setUserExistsSql("select Username from `Users` where Username = ?");
+      //插入用户
       jdbcUserDetailsManager
           .setCreateUserSql("insert into `Users` (Username, Password, Enabled) values (?,?,?)");
+      //更新用户
       jdbcUserDetailsManager
           .setUpdateUserSql("update `Users` set Password = ?, Enabled = ? where id = (select u.id from (select id from `Users` where Username = ?) as u)");
+      //删除用户
       jdbcUserDetailsManager.setDeleteUserSql("delete from `Users` where id = (select u.id from (select id from `Users` where Username = ?) as u)");
+      // 插入 Authorities
       jdbcUserDetailsManager
           .setCreateAuthoritySql("insert into `Authorities` (Username, Authority) values (?,?)");
+      // 删除 Authorities
       jdbcUserDetailsManager
           .setDeleteUserAuthoritiesSql("delete from `Authorities` where id = (select u.id from (select id from `Users` where Username = ?) as u)");
+      //更新Authorities
       jdbcUserDetailsManager
           .setChangePasswordSql("update `Users` set Password = ? where id = (select u.id from (select id from `Users` where Username = ?) as u)");
 
@@ -257,6 +280,12 @@ public class AuthConfiguration {
 
   }
 
+  /**
+   * @EnableWebSecurity 注解，禁用 Boot 的默认 Security 配置，配合 @Configuration 启用自定义配置（需要继承 WebSecurityConfigurerAdapter)
+   *@EnableGlobalMethodSecurity 启用 Security 注解，例如最常用的 @PreAuthorize
+   * .antMatchers("/**").hasAnyRole(USER_ROLE); 代码块，设置统一的 URL 的权限校验，只判断是否为登陆用户
+   * #hasAnyRole(...) 方法，会自动添加 "ROLE_" 前缀，所以此处的传参是 "user"
+   */
   @Order(99)
   @Profile("auth")
   @Configuration
@@ -264,20 +293,28 @@ public class AuthConfiguration {
   @EnableGlobalMethodSecurity(prePostEnabled = true)
   static class SpringSecurityConfigurer extends WebSecurityConfigurerAdapter {
 
+    //定义静态常量USER_ROLE为user
     public static final String USER_ROLE = "user";
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+      // 关闭打开的 csrf 保护
       http.csrf().disable();
+      // 仅允许相同 origin 访问
       http.headers().frameOptions().sameOrigin();
       http.authorizeRequests()
+              // openapi 和 资源不校验权限
           .antMatchers("/prometheus/**","/metrics/**","/openapi/**", "/vendor/**", "/styles/**", "/scripts/**", "/views/**", "/img/**").permitAll()
-          .antMatchers("/**").hasAnyRole(USER_ROLE);
+              // 其他，需要登录 User
+              .antMatchers("/**").hasAnyRole(USER_ROLE);
+      // 登录页
       http.formLogin().loginPage("/signin").permitAll().failureUrl("/signin?#/error").and().httpBasic();
       SimpleUrlLogoutSuccessHandler urlLogoutHandler = new SimpleUrlLogoutSuccessHandler();
+      // 登出（退出）
       urlLogoutHandler.setDefaultTargetUrl("/signin?#/logout");
       http.logout().logoutUrl("/user/logout").invalidateHttpSession(true).clearAuthentication(true)
           .logoutSuccessHandler(urlLogoutHandler);
+      // 未身份校验，跳转到登录页
       http.exceptionHandling().authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/signin"));
     }
 
