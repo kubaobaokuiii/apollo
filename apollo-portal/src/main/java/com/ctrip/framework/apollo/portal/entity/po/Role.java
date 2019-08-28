@@ -17,6 +17,14 @@ import javax.persistence.Table;
 @SQLDelete(sql = "Update Role set isDeleted = 1 where id = ?")
 @Where(clause = "isDeleted = 0")
 public class Role extends BaseEntity {
+
+  /**
+   * 角色名
+   * 三种角色类型(不是指三个角色)
+   * App 管理员：格式为 "Master + AppId"
+   * NameSpace修改管理员:ModifyNamespace + AppId + NamespaceName
+   * NameSpace发布管理员:ReleaseNamespace + AppId + NamespaceName
+   */
   @Column(name = "RoleName", nullable = false)
   private String roleName;
 

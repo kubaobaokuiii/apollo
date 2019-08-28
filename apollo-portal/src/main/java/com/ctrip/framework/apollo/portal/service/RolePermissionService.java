@@ -9,6 +9,7 @@ import java.util.Set;
 
 /**
  * @author Jason Song(song_s@ctrip.com)
+ *
  */
 public interface RolePermissionService {
 
@@ -16,6 +17,9 @@ public interface RolePermissionService {
    * Create role with permissions, note that role name should be unique
    */
   public Role createRoleWithPermissions(Role role, Set<Long> permissionIds);
+
+
+  //  =====================用户角色相关==================
 
   /**
    * Assign role to users
@@ -40,6 +44,9 @@ public interface RolePermissionService {
    */
   public Role findRoleByRoleName(String roleName);
 
+
+  //  ===================== UserPermission 相关==================
+
   /**
    * Check whether user has the permission
    */
@@ -50,7 +57,15 @@ public interface RolePermissionService {
    */
   public List<Role> findUserRoles(String userId);
 
+  /**
+   * 校验是否为超级管理员
+   * @param userId
+   * @return
+   */
   public boolean isSuperAdmin(String userId);
+
+
+  // ========== Permission 相关 ==========
 
   /**
    * Create permission, note that permissionType + targetId should be unique

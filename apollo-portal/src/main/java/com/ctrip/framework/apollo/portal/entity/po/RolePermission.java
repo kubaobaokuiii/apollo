@@ -11,15 +11,23 @@ import javax.persistence.Table;
 
 /**
  * @author Jason Song(song_s@ctrip.com)
+ * 角色与权限关联表
  */
 @Entity
 @Table(name = "RolePermission")
 @SQLDelete(sql = "Update RolePermission set isDeleted = 1 where id = ?")
 @Where(clause = "isDeleted = 0")
 public class RolePermission extends BaseEntity {
+
+  /**
+   * 角色编号
+   */
   @Column(name = "RoleId", nullable = false)
   private long roleId;
 
+  /**
+   * 权限编号
+   */
   @Column(name = "PermissionId", nullable = false)
   private long permissionId;
 

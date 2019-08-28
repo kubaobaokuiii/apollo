@@ -11,15 +11,23 @@ import javax.persistence.Table;
 
 /**
  * @author Jason Song(song_s@ctrip.com)
+ * 权限表
  */
 @Entity
 @Table(name = "Permission")
 @SQLDelete(sql = "Update Permission set isDeleted = 1 where id = ?")
 @Where(clause = "isDeleted = 0")
 public class Permission extends BaseEntity {
+
+  /**
+   * 权限类型
+   */
   @Column(name = "PermissionType", nullable = false)
   private String permissionType;
 
+  /**
+   * 目标编号
+   */
   @Column(name = "TargetId", nullable = false)
   private String targetId;
 
