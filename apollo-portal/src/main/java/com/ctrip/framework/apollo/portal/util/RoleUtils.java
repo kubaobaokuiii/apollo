@@ -42,6 +42,12 @@ public class RoleUtils {
     return STRING_JOINER.join(roleType, appId);
   }
 
+  /**
+   * 创建NmaeSpace修改的角色名
+   * @param appId
+   * @param namespaceName
+   * @return
+   */
   public static String buildModifyNamespaceRoleName(String appId, String namespaceName) {
     return buildModifyNamespaceRoleName(appId, namespaceName, null);
   }
@@ -54,6 +60,12 @@ public class RoleUtils {
     return STRING_JOINER.join(RoleType.MODIFY_NAMESPACE, appId, ConfigConsts.NAMESPACE_APPLICATION);
   }
 
+  /**
+   * 创建NameSpace发布的角色名
+   * @param appId
+   * @param namespaceName
+   * @return
+   */
   public static String buildReleaseNamespaceRoleName(String appId, String namespaceName) {
     return buildReleaseNamespaceRoleName(appId, namespaceName, null);
   }

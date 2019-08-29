@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 /**
  * Created by timothy on 2017/4/26.
+ * 默认 RoleInitializationService 实现类
  */
 public class DefaultRoleInitializationService implements RoleInitializationService {
 
@@ -38,29 +39,53 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
 
   @Transactional
   public void initAppRoles(App app) {
+
     String appId = app.getAppId();
 
+    /**
+     * 创建App拥有者的角色名
+     */
     String appMasterRoleName = RoleUtils.buildAppMasterRoleName(appId);
 
     //has created before
+    /**
+     * 校验角色是否存在，存在，则直接返回
+     */
     if (rolePermissionService.findRoleByRoleName(appMasterRoleName) != null) {
       return;
     }
+
+    //获取应用的修改创建人
     String operator = app.getDataChangeCreatedBy();
+
     //create app permissions
+    /**
+     * 创建App角色
+     */
     createAppMasterRole(appId, operator);
+
     //create manageAppMaster permission
     createManageAppMasterRole(appId, operator);
 
     //assign master role to user
+    /**
+     * 授权角色给App拥有者
+     */
     rolePermissionService
         .assignRoleToUsers(RoleUtils.buildAppMasterRoleName(appId), Sets.newHashSet(app.getOwnerName()),
             operator);
 
+    /**
+     * 初始化NameSpace角色
+     */
     initNamespaceRoles(appId, ConfigConsts.NAMESPACE_APPLICATION, operator);
+
     initNamespaceEnvRoles(appId, ConfigConsts.NAMESPACE_APPLICATION, operator);
 
     //assign modify、release namespace role to user
+    /**
+     * 授权角色给App创建者（Namespace 是自动创建的，并且是通过创建人来操作的）
+     */
     rolePermissionService.assignRoleToUsers(
         RoleUtils.buildNamespaceRoleName(appId, ConfigConsts.NAMESPACE_APPLICATION, RoleType.MODIFY_NAMESPACE),
         Sets.newHashSet(operator), operator);
@@ -70,16 +95,28 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
 
   }
 
+  /**
+   * 初始化NameSpace角色
+   * @param appId
+   * @param namespaceName
+   * @param operator
+   */
   @Transactional
   public void initNamespaceRoles(String appId, String namespaceName, String operator) {
 
+    //创建NameSpace修改的角色
     String modifyNamespaceRoleName = RoleUtils.buildModifyNamespaceRoleName(appId, namespaceName);
+
+    //若不存在对应的角色Role，则创建
     if (rolePermissionService.findRoleByRoleName(modifyNamespaceRoleName) == null) {
       createNamespaceRole(appId, namespaceName, PermissionType.MODIFY_NAMESPACE,
           modifyNamespaceRoleName, operator);
     }
 
+    //创建NameSpace发布的角色名
     String releaseNamespaceRoleName = RoleUtils.buildReleaseNamespaceRoleName(appId, namespaceName);
+
+    //若不存在对应的角色Role，则创建
     if (rolePermissionService.findRoleByRoleName(releaseNamespaceRoleName) == null) {
       createNamespaceRole(appId, namespaceName, PermissionType.RELEASE_NAMESPACE,
           releaseNamespaceRoleName, operator);
@@ -148,7 +185,16 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
     }
   }
 
+  /**
+   * 创建App拥有者角色
+   * @param appId
+   * @param operator
+   */
   private void createAppMasterRole(String appId, String operator) {
+
+    /**
+     * 创建App对应的Permissions集合，并保存到数据库
+     */
     Set<Permission> appPermissions =
         Stream.of(PermissionType.CREATE_CLUSTER, PermissionType.CREATE_NAMESPACE, PermissionType.ASSIGN_ROLE)
             .map(permissionType -> createPermission(appId, permissionType, operator)).collect(Collectors.toSet());
@@ -158,11 +204,21 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
         createdAppPermissions.stream().map(BaseEntity::getId).collect(Collectors.toSet());
 
     //create app master role
+    /**
+     * 调用 RoleUtils#buildAppMasterRoleName(appId) 方法，创建 App 拥有者的角色名
+     */
     Role appMasterRole = createRole(RoleUtils.buildAppMasterRoleName(appId), operator);
 
     rolePermissionService.createRoleWithPermissions(appMasterRole, appPermissionIds);
   }
 
+  /**
+   * 创建Permission对象
+   * @param targetId
+   * @param permissionType
+   * @param operator
+   * @return
+   */
   private Permission createPermission(String targetId, String permissionType, String operator) {
     Permission permission = new Permission();
     permission.setPermissionType(permissionType);
@@ -172,6 +228,12 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
     return permission;
   }
 
+  /**
+   * 创建并保存App对应的Role对象
+   * @param roleName
+   * @param operator
+   * @return
+   */
   private Role createRole(String roleName, String operator) {
     Role role = new Role();
     role.setRoleName(roleName);
@@ -180,13 +242,27 @@ public class DefaultRoleInitializationService implements RoleInitializationServi
     return role;
   }
 
+  /**
+   * 创建NameSpace角色
+   * @param appId
+   * @param namespaceName
+   * @param permissionType
+   * @param roleName
+   * @param operator
+   */
   private void createNamespaceRole(String appId, String namespaceName, String permissionType,
                                    String roleName, String operator) {
-
+    /**
+     * 创建NameSpace对应的Permission对象，并保存到数据库
+     * RoleUtils.buildNamespaceTargetId()，创建NamaSpace的目标编号
+     */
     Permission permission =
         createPermission(RoleUtils.buildNamespaceTargetId(appId, namespaceName), permissionType, operator);
     Permission createdPermission = rolePermissionService.createPermission(permission);
 
+    /**
+     *
+     */
     Role role = createRole(roleName, operator);
     rolePermissionService
         .createRoleWithPermissions(role, Sets.newHashSet(createdPermission.getId()));

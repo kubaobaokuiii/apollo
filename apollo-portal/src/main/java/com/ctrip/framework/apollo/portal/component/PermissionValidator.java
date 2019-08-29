@@ -11,6 +11,11 @@ import com.ctrip.framework.apollo.portal.util.RoleUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * 权限校验器
+ * 在每个需要校验权限的方法上，添加 @PreAuthorize 注解，并在 value 属性上写 EL 表达式，调用 PermissionValidator 的校验方法
+ * 创建 Namespace 的方法，添加了 @PreAuthorize(value = "@permissionValidator.hasCreateNamespacePermission(#appId)")
+ */
 @Component("permissionValidator")
 public class PermissionValidator {
 
@@ -33,6 +38,8 @@ public class PermissionValidator {
     this.appNamespaceService = appNamespaceService;
     this.systemRoleManagerService = systemRoleManagerService;
   }
+
+  //    ======================= Namespace 级别 ============================
 
   public boolean hasModifyNamespacePermission(String appId, String namespaceName) {
     return rolePermissionService.userHasPermission(userInfoHolder.getUser().getUserId(),
@@ -72,6 +79,8 @@ public class PermissionValidator {
         hasReleaseNamespacePermission(appId, namespaceName, env);
   }
 
+  // =================================== App 级别 ===========================
+
   public boolean hasAssignRolePermission(String appId) {
     return rolePermissionService.userHasPermission(userInfoHolder.getUser().getUserId(),
         PermissionType.ASSIGN_ROLE,
@@ -89,11 +98,18 @@ public class PermissionValidator {
 
     boolean isPublicAppNamespace = appNamespace.isPublic();
 
+    /**
+     * 如果满足一下任一条件:
+     *  1. 公开类型的 AppNamespace
+     *  2. 私有类型的 AppNamespace ，并且允许 App 管理员创建私有类型的 AppNamespace
+     */
     if (portalConfig.canAppAdminCreatePrivateNamespace() || isPublicAppNamespace) {
       return hasCreateNamespacePermission(appId);
     }
 
+    //返回超级管理员
     return isSuperAdmin();
+
   }
 
   public boolean hasCreateClusterPermission(String appId) {
@@ -106,6 +122,10 @@ public class PermissionValidator {
     return isSuperAdmin() || hasAssignRolePermission(appId);
   }
 
+  /**
+   * 超级管理员级别
+   * @return
+   */
   public boolean isSuperAdmin() {
     return rolePermissionService.isSuperAdmin(userInfoHolder.getUser().getUserId());
   }

@@ -275,11 +275,14 @@ public class DefaultRolePermissionService implements RolePermissionService {
      */
     @Transactional
     public Set<Permission> createPermissions(Set<Permission> permissions) {
+
+        // 创建 Multimap 对象，用于下面校验的分批的批量查询
         Multimap<String, String> targetIdPermissionTypes = HashMultimap.create();
         for (Permission permission : permissions) {
             targetIdPermissionTypes.put(permission.getTargetId(), permission.getPermissionType());
         }
 
+        //查询Permission集合，校验都不存在
         for (String targetId : targetIdPermissionTypes.keySet()) {
             Collection<String> permissionTypes = targetIdPermissionTypes.get(targetId);
             List<Permission> current =
@@ -289,7 +292,10 @@ public class DefaultRolePermissionService implements RolePermissionService {
                     targetId);
         }
 
+        //保存Permission集合
         Iterable<Permission> results = permissionRepository.saveAll(permissions);
+
+        //转成Permisson集合，并返回
         return StreamSupport.stream(results.spliterator(), false).collect(Collectors.toSet());
     }
 

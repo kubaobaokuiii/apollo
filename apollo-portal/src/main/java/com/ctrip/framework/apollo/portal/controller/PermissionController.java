@@ -35,7 +35,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/**
+ * PermissionController
+ * 提供权限相关的 API
+ * 对应界面为:App级别权限管理,NameSpace级别权限管理
+ *
+ */
 @RestController
 public class PermissionController {
 

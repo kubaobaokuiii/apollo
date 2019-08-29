@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Timothy Liu(timothy.liu@cvte.com)
+ * Role Spring Java配置
  */
 @Configuration
 public class RoleConfiguration {
